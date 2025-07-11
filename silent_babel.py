@@ -11,6 +11,13 @@ import argparse
 import pathlib
 
 
+def not_timecode(text):
+    number_count = len([e for e in text if e.isdigit()])
+    if number_count / len(text) > 0.5:
+        return False
+    return True
+
+
 def get_text_from_movie(path, lang='fr'):
     buffer = cv2.VideoCapture(path)
     fps = int(round(buffer.get(cv2.CAP_PROP_FPS)))  # How bad will this get for FPS drops or some shit like 23.998??
@@ -27,6 +34,7 @@ def get_text_from_movie(path, lang='fr'):
             if counter % (fps // 2) == 0:
                 result = reader.readtext(frame, paragraph=True, detail=0)
                 if result:
+                    result = [e for e in result if not_timecode(e)]
                     paragraph = ' '.join(result)
                     intertitle_len_counter += fps // 2
                     if old_parahraph is None:
@@ -103,7 +111,7 @@ if __name__ == '__main__':
         print(f"Working on {file}:")
     
         if namespace.output is None:
-            output = namespace.files
+            output = file
         else:
             output = namespace.output
 
